@@ -27,4 +27,9 @@ class MealPlan extends Model
     {
         return $this->belongsTo(FoodRecipe::class);
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

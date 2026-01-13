@@ -30,4 +30,9 @@ class FoodRecipe extends Model
     {
         return $this->belongsTo(FoodMenu::class, 'food_menu_id');
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
