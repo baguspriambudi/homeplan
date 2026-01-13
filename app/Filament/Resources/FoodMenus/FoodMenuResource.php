@@ -19,7 +19,7 @@ class FoodMenuResource extends Resource
 {
     protected static ?string $model = FoodMenu::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Cake;
 
     protected static ?string $recordTitleAttribute = 'name';
 

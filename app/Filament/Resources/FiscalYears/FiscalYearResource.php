@@ -19,7 +19,7 @@ class FiscalYearResource extends Resource
 {
     protected static ?string $model = FiscalYear::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDateRange;
 
     protected static ?string $recordTitleAttribute = 'name';
 
