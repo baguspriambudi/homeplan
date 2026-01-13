@@ -39,20 +39,9 @@ class BillsSummaryWidget extends BaseWidget
     {
         return $table
             ->query(function () {
-                // 1. Mulai query kategori tipe 'bills'
-                $query = Category::query()->where('type', 'bills');
-
-                // 2. Ambil data Fiscal Year yang sedang aktif
-                $fiscal = FiscalYear::find($this->activeFiscalId);
-
-                // 3. Jika ada fiscal year, filter hanya kategori yang punya expense di periode itu
-                if ($fiscal) {
-                    $query->whereHas('expenses', function (Builder $q) use ($fiscal) {
-                        $q->whereBetween('expense_date', [$fiscal->start_date, $fiscal->end_date]);
-                    });
-                }
-
-                return $query;
+                // Cukup ambil semua kategori tipe bills tanpa whereHas
+                // Ini memastikan kategori dengan sum 0 tetap muncul
+                return Category::query()->where('type', 'bills');
             })
             ->columns([
                 TextColumn::make('name')
@@ -65,11 +54,14 @@ class BillsSummaryWidget extends BaseWidget
                     ->alignRight()
                     ->state(function (Category $record) {
                         $fiscal = FiscalYear::find($this->activeFiscalId);
+
+                        // Jika tidak ada fiscal year aktif, tampilkan 0
                         if (!$fiscal) return 0;
 
+                        // Menghitung jumlah expense untuk kategori ini di periode tertentu
                         return $record->expenses()
                             ->whereBetween('expense_date', [$fiscal->start_date, $fiscal->end_date])
-                            ->sum('amount');
+                            ->sum('amount') ?? 0;
                     })
                     ->summarize(
                         Summarizer::make()
@@ -77,9 +69,7 @@ class BillsSummaryWidget extends BaseWidget
                             ->money('IDR', locale: 'id')
                             ->using(function () {
                                 $fiscal = FiscalYear::find($this->activeFiscalId);
-                                if (! $fiscal) {
-                                    return 0;
-                                }
+                                if (! $fiscal) return 0;
 
                                 return Expense::whereHas('category', fn($q) => $q->where('type', 'bills'))
                                     ->whereBetween('expense_date', [
