@@ -28,6 +28,8 @@ class ExpenseResource extends Resource
 
     protected static string | UnitEnum | null $navigationGroup = 'Expenses';
 
+    protected static ?string $breadcrumb = 'Spending';
+
     public static function form(Schema $schema): Schema
     {
         return ExpenseForm::configure($schema);
