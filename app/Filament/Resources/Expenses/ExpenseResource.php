@@ -2,18 +2,19 @@
 
 namespace App\Filament\Resources\Expenses;
 
-use App\Filament\Resources\Expenses\Pages\CreateExpense;
+use UnitEnum;
+use BackedEnum;
+use App\Models\Expense;
+use Filament\Tables\Table;
+use Filament\Schemas\Schema;
+use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\Expenses\Pages\EditExpense;
 use App\Filament\Resources\Expenses\Pages\ListExpenses;
+use App\Filament\Resources\Expenses\Pages\CreateExpense;
 use App\Filament\Resources\Expenses\Schemas\ExpenseForm;
 use App\Filament\Resources\Expenses\Tables\ExpensesTable;
-use App\Models\Expense;
-use BackedEnum;
-use UnitEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
 
 class ExpenseResource extends Resource
 {
@@ -42,6 +43,14 @@ class ExpenseResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('category', function (Builder $query) {
+                $query->where('type', '!=', 'income');
+            });
     }
 
     public static function getPages(): array
