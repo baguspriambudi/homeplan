@@ -19,7 +19,7 @@ class ExpenseForm
         return $schema
             ->components([
                 DatePicker::make('expense_date')
-                    ->label('Expense Date')
+                    ->label('Spending Date')
                     ->required()
                     ->default(now())
                     ->live()

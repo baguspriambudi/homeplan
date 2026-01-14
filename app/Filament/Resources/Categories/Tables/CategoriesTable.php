@@ -13,6 +13,7 @@ class CategoriesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordAction(null)
             ->columns([
                 TextColumn::make('name')
                     ->label('Name') // Label disesuaikan
@@ -45,7 +46,9 @@ class CategoriesTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->modalHeading('Edit Category')
+                    ->modalWidth('md'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

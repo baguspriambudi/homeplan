@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Categories\Schemas;
 
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 
 class CategoryForm
@@ -14,14 +15,10 @@ class CategoryForm
     public static function configure($schema)
     {
         return $schema
+            ->columns(1)
             ->components([
-                TextInput::make('name')
-                    ->label('Category Name') // Label diganti ke Bahasa Inggris
-                    ->placeholder('e.g. Office Supplies')
-                    ->required(),
-
                 Select::make('type')
-                    ->label('Transaction Type') // Label diganti ke Bahasa Inggris
+                    ->label('Transaction Type')
                     ->options([
                         'spending' => 'Spending',
                         'bills' => 'Bills',
@@ -30,7 +27,12 @@ class CategoryForm
                     ])
                     ->default('spending')
                     ->required()
-                    ->native(false), // Opsional: Tampilan Select yang lebih modern
+                    ->native(false),
+
+                Textarea::make('name')
+                    ->label('Category Name')
+                    ->placeholder('e.g. Office Supplies')
+                    ->required(),
 
                 Hidden::make('created_by')
                     ->default(auth()->id())

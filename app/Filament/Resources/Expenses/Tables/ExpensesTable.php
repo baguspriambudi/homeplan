@@ -18,6 +18,7 @@ class ExpensesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordAction(null)
             ->columns([
                 TextColumn::make('category.name')
                     ->label('Category Name')
@@ -99,7 +100,9 @@ class ExpensesTable
                     })
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->modalHeading('Edit Spending')
+                    ->modalWidth('4xl'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
