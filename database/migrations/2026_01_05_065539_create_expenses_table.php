@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('category_id')->index();
 
             $table->decimal('amount', 15, 2);
+            $table->tinyInteger('adjust_to_cash')->default(0);
             $table->string('description')->nullable();
             $table->date('expense_date');
 

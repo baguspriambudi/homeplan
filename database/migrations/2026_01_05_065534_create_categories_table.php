@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['income', 'spending', 'bills', 'instalment'])->default('spending');
+            $table->enum('type', ['income', 'spending', 'bills', 'instalment', 'saving'])->default('spending');
 
             $table->unsignedBigInteger('created_by')->index();
             $table->timestamps();
