@@ -16,16 +16,17 @@ class CategoriesTable
             ->recordAction(null)
             ->columns([
                 TextColumn::make('name')
-                    ->label('Name') // Label disesuaikan
+                    ->label('Name')
                     ->searchable(),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
                     ->colors([
+                        'success' => 'income',
+                        'info'    => 'saving',
                         'danger'  => 'spending',
                         'warning' => 'bills',
-                        'info'    => 'instalment',
-                        'success' => 'income',
+                        'purple'  => 'instalment',
                     ]),
                 TextColumn::make('creator.name')
                     ->label('Created By')

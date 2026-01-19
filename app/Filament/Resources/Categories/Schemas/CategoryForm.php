@@ -24,6 +24,7 @@ class CategoryForm
                         'bills' => 'Bills',
                         'instalment' => 'Instalment',
                         'income' => 'Income',
+                        'saving' => 'Saving'
                     ])
                     ->default('spending')
                     ->required()
