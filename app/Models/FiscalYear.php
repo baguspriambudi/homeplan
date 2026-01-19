@@ -45,11 +45,6 @@ class FiscalYear extends Model
         return $this->hasMany(Expense::class);
     }
 
-    /**
-     * MODEL EVENTS
-     * - Hitung total_expenses & remaining_amount
-     *   HANYA saat status berubah ke "closed"
-     */
     protected static function booted()
     {
         static::updating(function (FiscalYear $fiscal) {
