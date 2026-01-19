@@ -51,7 +51,7 @@ class ExpenseResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('category', function (Builder $query) {
-                $query->where('type', '!=', 'income');
+                $query->whereNotIn('type', ['income', 'saving']);
             });
     }
 

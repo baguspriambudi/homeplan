@@ -48,7 +48,7 @@ class ExpenseForm
                         name: 'category',
                         titleAttribute: 'name',
                         modifyQueryUsing: fn($query) =>
-                        $query->where('type', '!=', 'income')
+                        $query->whereNotIn('type', ['income', 'saving'])
                     )
                     ->searchable()
                     ->preload()
