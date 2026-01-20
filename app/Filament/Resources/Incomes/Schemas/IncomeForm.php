@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Incomes\Schemas;
 
 use App\Models\Category;
 use App\Models\Expense;
+use App\Models\Income;
 use App\Models\FiscalYear;
 use Closure;
 use Filament\Schemas\Schema;
@@ -20,8 +21,8 @@ class IncomeForm
     {
         return $schema
             ->components([
-                DatePicker::make('expense_date')
-                    ->label('Spending Date')
+                DatePicker::make('income_date')
+                    ->label('Income Date')
                     ->required()
                     ->default(now())
                     ->live()
@@ -67,7 +68,7 @@ class IncomeForm
                     ->prefix('Rp')
                     ->rules([
                         fn($get) => function (string $attribute, $value, Closure $fail) use ($get) {
-                            $date = $get('expense_date');
+                            $date = $get('income_date');
                             if (!$date) return;
 
                             $fiscalYear = FiscalYear::where('start_date', '<=', $date)
@@ -76,7 +77,7 @@ class IncomeForm
 
                             if ($fiscalYear) {
                                 // Calculate other expenses in this period
-                                $totalOthers = Expense::whereBetween('expense_date', [$fiscalYear->start_date, $fiscalYear->end_date])
+                                $totalOthers = Income::whereBetween('income_date', [$fiscalYear->start_date, $fiscalYear->end_date])
                                     // If editing, exclude current record
                                     ->when($get('id'), fn($q, $id) => $q->where('id', '!=', $id))
                                     ->sum('amount');

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Incomes;
 
 use BackedEnum;
 use UnitEnum;
-use App\Models\Expense;
+use App\Models\Income;
 use Filament\Tables\Table;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
@@ -18,7 +18,7 @@ use App\Filament\Resources\Incomes\Tables\IncomesTable;
 
 class IncomeResource extends Resource
 {
-    protected static ?string $model = Expense::class;
+    protected static ?string $model = Income::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::ArrowTrendingUp;
 
@@ -26,7 +26,7 @@ class IncomeResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Expenses';
+    protected static string | UnitEnum | null $navigationGroup = 'Finance';
 
     protected static ?string $breadcrumb = 'Income';
 

@@ -60,8 +60,8 @@ class IncomesTable
                     ->label('Description')
                     ->searchable(),
 
-                TextColumn::make('expense_date')
-                    ->label('Expense Date')
+                TextColumn::make('income_date')
+                    ->label('Income Date')
                     ->date()
                     ->sortable(),
 
@@ -91,7 +91,7 @@ class IncomesTable
                         if ($data['value']) {
                             $fiscal = FiscalYear::find($data['value']);
                             if ($fiscal) {
-                                $query->whereBetween('expense_date', [
+                                $query->whereBetween('income_date', [
                                     $fiscal->start_date,
                                     $fiscal->end_date
                                 ]);
