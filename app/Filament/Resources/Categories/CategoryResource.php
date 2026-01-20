@@ -23,7 +23,7 @@ class CategoryResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Expenses';
+    protected static string | UnitEnum | null $navigationGroup = 'Finance';
 
     public static function form(Schema $schema): Schema
     {

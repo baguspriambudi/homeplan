@@ -26,7 +26,7 @@ class ExpenseResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'description';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Expenses';
+    protected static string | UnitEnum | null $navigationGroup = 'Finance';
 
     protected static ?string $breadcrumb = 'Spending';
 

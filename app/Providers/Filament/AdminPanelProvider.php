@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->navigationGroups([
-                'Expenses',
+                'Finance',
                 'Meals',
                 'Settings',
             ])
