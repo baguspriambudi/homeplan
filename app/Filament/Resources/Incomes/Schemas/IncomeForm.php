@@ -65,32 +65,7 @@ class IncomeForm
                     ->label('Amount')
                     ->required()
                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                    ->prefix('Rp')
-                    ->rules([
-                        fn($get) => function (string $attribute, $value, Closure $fail) use ($get) {
-                            $date = $get('income_date');
-                            if (!$date) return;
-
-                            $fiscalYear = FiscalYear::where('start_date', '<=', $date)
-                                ->where('end_date', '>=', $date)
-                                ->first();
-
-                            if ($fiscalYear) {
-                                // Calculate other expenses in this period
-                                $totalOthers = Income::whereBetween('income_date', [$fiscalYear->start_date, $fiscalYear->end_date])
-                                    // If editing, exclude current record
-                                    ->when($get('id'), fn($q, $id) => $q->where('id', '!=', $id))
-                                    ->sum('amount');
-
-                                $remaining = $fiscalYear->opening_balance - $totalOthers;
-
-                                if ($value > $remaining) {
-                                    // Error message in English
-                                    $fail("Insufficient balance. Remaining balance: Rp " . number_format($remaining, 0, ',', '.'));
-                                }
-                            }
-                        },
-                    ]),
+                    ->prefix('Rp'),
 
                 // Checkbox::make('adjust_to_cash')
                 //     ->label('Adjust to Incoming Cash')

@@ -51,21 +51,21 @@ class ExpenseOverview extends BaseWidget
 
         return [
             // CARD 1: OPENING BALANCE
-            Stat::make('Opening Balance', 'Rp ' . number_format($openingBalance, 0, ',', '.'))
+            Stat::make('Opening Balance', 'Rp ' . number_format($openingBalance, 2, ',', '.'))
                 ->description($activeFiscal ? "Period: {$activeFiscal->name}" : 'No active period')
                 ->icon('heroicon-o-banknotes')
                 ->color('info')
                 ->chart([5, 5, 6, 6, 7, 8, 9]),
 
             // CARD 2: TOTAL EXPENSES
-            Stat::make('Total Expenses', 'Rp ' . number_format($totalSpent, 0, ',', '.'))
+            Stat::make('Total Expenses', 'Rp ' . number_format($totalSpent, 2, ',', '.'))
                 ->description('Total spent in this period')
                 ->icon('heroicon-o-arrow-trending-down')
                 ->color('danger')
                 ->chart([10, 2, 8, 3, 12, 5, 15]),
 
             // CARD 3: REMAINING BUDGET
-            Stat::make('Remaining Budget', 'Rp ' . number_format($remaining, 0, ',', '.'))
+            Stat::make('Remaining Budget', 'Rp ' . number_format($remaining, 2, ',', '.'))
                 ->description($remaining < 0 ? 'Budget Overlimit!' : 'Available funds')
                 ->icon('heroicon-o-wallet')
                 ->color($remaining >= 0 ? 'success' : 'danger')
