@@ -2,20 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Concerns\BelongsToHousehold;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FiscalYear extends Model
 {
-    use HasFactory;
+    use BelongsToHousehold, HasFactory;
 
-    protected $table = 'fiscal_years';
-
-    /**
-     * Mass assignable fields
-     */
     protected $fillable = [
         'name',
         'start_date',
@@ -26,26 +22,15 @@ class FiscalYear extends Model
         'status',
     ];
 
-    /**
-     * Casts
-     */
     protected $casts = [
-        'start_date'        => 'date',
-        'end_date'          => 'date',
-        'opening_balance'   => 'decimal:0',
-        'total_expenses'    => 'decimal:0',
-        'remaining_amount' => 'decimal:0',
+        'start_date'      => 'date',
+        'end_date'        => 'date',
+        'opening_balance' => 'decimal:0',
+        'total_expenses'  => 'decimal:0',
+        'remaining_amount'=> 'decimal:0',
     ];
 
-    /**
-     * Relationships
-     */
-    public function expenses(): HasMany
-    {
-        return $this->hasMany(Expense::class);
-    }
-
-    protected static function booted()
+    protected static function booted(): void
     {
         static::updating(function (FiscalYear $fiscal) {
             if (!$fiscal->isDirty('status')) {
@@ -53,12 +38,13 @@ class FiscalYear extends Model
             }
 
             if ($fiscal->status === 'closed') {
-                // Kita hitung manual berdasarkan range tanggal fiscal year ini
-                // Mengambil model Expense secara langsung
-                $total = Expense::whereBetween('expense_date', [
-                    $fiscal->start_date,
-                    $fiscal->end_date
-                ])->sum('amount');
+                // Hitung expense milik household fiscal year ini, bukan household user login
+                $total = Expense::withoutGlobalScope('household')
+                    ->where('household_id', $fiscal->household_id)
+                    ->whereBetween('expense_date', [
+                        $fiscal->start_date,
+                        $fiscal->end_date,
+                    ])->sum('amount');
 
                 $fiscal->total_expenses   = $total;
                 $fiscal->remaining_amount = $fiscal->opening_balance - $total;
@@ -71,9 +57,11 @@ class FiscalYear extends Model
         });
     }
 
-    /**
-     * Scopes
-     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
     public function scopeOpen($query)
     {
         return $query->where('status', 'open');
@@ -84,9 +72,6 @@ class FiscalYear extends Model
         return $query->where('status', 'closed');
     }
 
-    /**
-     * Helpers
-     */
     public function isOpen(): bool
     {
         return $this->status === 'open';
@@ -97,24 +82,11 @@ class FiscalYear extends Model
         return $this->status === 'closed';
     }
 
-    /**
-     * Optional helper
-     * Cek apakah tanggal tertentu ada di fiscal ini
-     */
     public function containsDate(Carbon $date): bool
     {
         return $date->between(
             $this->start_date->startOfDay(),
             $this->end_date->endOfDay()
         );
-    }
-
-    /**
-     * Safety helper
-     * Mencegah perubahan data setelah closed (opsional dipakai)
-     */
-    public function canBeModified(): bool
-    {
-        return $this->status !== 'closed';
     }
 }

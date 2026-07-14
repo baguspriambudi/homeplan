@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-// Tambahkan ini untuk notifikasi
-use Filament\Notifications\Notification;
 
 class Income extends Model
 {
-    use HasFactory;
+    use \App\Models\Concerns\BelongsToHousehold, HasFactory;
 
     public $tempOldData = null;
 
@@ -26,32 +25,29 @@ class Income extends Model
     ];
 
     protected $casts = [
-        'income_date' => 'date',
-        'amount' => 'decimal:2',
-        'adjust_to_cash'  => 'boolean',
+        'income_date'    => 'date',
+        'amount'         => 'decimal:2',
+        'adjust_to_cash' => 'boolean',
     ];
 
     protected function description(): Attribute
     {
         return Attribute::make(
-            set: fn(string $value) => strtoupper($value),
+            set: fn(?string $value) => $value ? strtoupper($value) : null,
         );
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /* =====================
-     |  STRICT BOOTED LOGIC
-     ===================== */
-    protected static function booted()
+    protected static function booted(): void
     {
         static::updating(function (Income $income) {
             $income->tempOldData = $income->getOriginal();
@@ -59,102 +55,70 @@ class Income extends Model
 
         static::saved(function (Income $income) {
             DB::transaction(function () use ($income) {
-                $balanceWasAdjusted = false;
-
-                // Jika record baru
                 if ($income->wasRecentlyCreated) {
-                    $income->updateFiscalBalance(
+                    $income->adjustFiscalBalance(
                         $income->amount,
                         $income->income_date,
                         $income->adjust_to_cash,
                         'add'
                     );
-                    $balanceWasAdjusted = $income->adjust_to_cash;
                 } elseif ($income->wasChanged(['amount', 'income_date', 'adjust_to_cash'])) {
                     if ($income->tempOldData) {
-                        $income->updateFiscalBalance(
+                        $income->adjustFiscalBalance(
                             $income->tempOldData['amount'],
                             $income->tempOldData['income_date'],
                             $income->tempOldData['adjust_to_cash'],
                             'sub'
                         );
-
-                        $income->updateFiscalBalance(
+                        $income->adjustFiscalBalance(
                             $income->amount,
                             $income->income_date,
                             $income->adjust_to_cash,
                             'add'
                         );
-                        $balanceWasAdjusted = $income->tempOldData['adjust_to_cash'] || $income->adjust_to_cash;
-                    }
-                }
-
-                if ($balanceWasAdjusted) {
-                    $amountFormatted = 'Rp ' . number_format($income->amount, 0, ',', '.');
-
-                    if ($income->wasRecentlyCreated) {
-                        Notification::make()
-                            ->title('Saldo Awal Disesuaikan')
-                            ->body("Income of {$amountFormatted} has been added to the opening balance.")
-                            ->success()
-                            ->send();
-                    } elseif ($income->wasChanged()) {
-                        Notification::make()
-                            ->title('Saldo Awal Diperbarui')
-                            ->body("A reduction in income of {$amountFormatted} has updated the opening balance.")
-                            ->info()
-                            ->send();
                     }
                 }
             });
         });
 
         static::deleted(function (Income $income) {
-            $income->updateFiscalBalance($income->amount, $income->income_date, $income->adjust_to_cash, 'sub');
-            if ($income->adjust_to_cash) {
-                $amountFormatted = 'Rp ' . number_format($income->amount, 0, ',', '.');
-                Notification::make()
-                    ->title('Saldo Awal Dikurangi')
-                    ->body("The deletion of income {$amountFormatted} has reduced the opening balance.")
-                    ->warning()
-                    ->send();
-            }
+            $income->adjustFiscalBalance(
+                $income->amount,
+                $income->income_date,
+                $income->adjust_to_cash,
+                'sub'
+            );
         });
     }
 
-    /* =====================
-     |  ATOMIC CALCULATION
-     ===================== */
-    protected function updateFiscalBalance($amount, $date, $adjustToCash, $action)
+    protected function adjustFiscalBalance($amount, $date, bool $adjustToCash, string $action): void
     {
-        $fiscal = FiscalYear::where('status', 'open')
+        if (!$adjustToCash) {
+            return;
+        }
+
+        // Cari fiscal year milik household income ini (bukan household user yang login),
+        // agar tetap benar saat super admin yang mengoperasikan.
+        $fiscal = FiscalYear::withoutGlobalScope('household')
+            ->where('household_id', $this->household_id)
+            ->where('status', 'open')
             ->where('start_date', '<=', $date)
             ->where('end_date', '>=', $date)
             ->lockForUpdate()
             ->first();
 
         if (!$fiscal) {
-            Log::warning('Attempted to adjust fiscal balance, but no open fiscal year was found.', [
-                'date' => $date->format('Y-m-d'),
+            Log::warning('No open fiscal year found for income balance adjustment.', [
+                'date' => is_string($date) ? $date : $date->format('Y-m-d'),
                 'income_id' => $this->id ?? 'N/A',
             ]);
             return;
         }
 
-        Log::info('Fiscal balance adjustment triggered.', [
-            'fiscal_year_id' => $fiscal->id,
-            'action' => $action,
-            'amount' => $amount,
-            'adjust_to_cash' => $adjustToCash,
-            'current_balance' => $fiscal->opening_balance,
-        ]);
-
-        if ($adjustToCash) {
-            if ($action === 'add') {
-                $fiscal->increment('opening_balance', $amount);
-            } else {
-                $fiscal->decrement('opening_balance', $amount);
-            }
+        if ($action === 'add') {
+            $fiscal->increment('opening_balance', $amount);
+        } else {
+            $fiscal->decrement('opening_balance', $amount);
         }
     }
 }
