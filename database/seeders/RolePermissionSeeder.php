@@ -6,12 +6,13 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
             // Dashboard
@@ -42,8 +43,13 @@ class RolePermissionSeeder extends Seeder
             'delete incomes',
 
             // Administration
+            'view users',
             'manage users',
             'manage roles',
+
+            // Subscription & Payments (khusus super admin)
+            'manage plans',
+            'manage payments',
         ];
 
         // Hapus permission lama yang tidak dipakai lagi
@@ -58,11 +64,18 @@ class RolePermissionSeeder extends Seeder
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
         $superAdmin->syncPermissions($permissions);
 
-        // Admin: admin rumah tangga — semua permission kecuali manage roles (global)
+        // Admin: admin rumah tangga — semua permission kecuali yang global
+        // (manage roles, master harga, dan konfirmasi pembayaran hanya super admin)
         $admin = Role::firstOrCreate(['name' => 'admin']);
-        $admin->syncPermissions(array_values(array_diff($permissions, ['manage roles'])));
+        $admin->syncPermissions(array_values(array_diff($permissions, [
+            'manage roles',
+            'manage plans',
+            'manage payments',
+        ])));
 
-        // User: hanya expenses & incomes penuh
+        // User: anggota household (dibuat oleh admin household) — fitur harian
+        // penuh, tapi user management hanya melihat daftar; edit terbatas ke
+        // dirinya sendiri (dijaga di UserController)
         $user = Role::firstOrCreate(['name' => 'user']);
         $user->syncPermissions([
             'view dashboard',
@@ -74,6 +87,15 @@ class RolePermissionSeeder extends Seeder
             'create incomes',
             'edit incomes',
             'delete incomes',
+            'view categories',
+            'create categories',
+            'edit categories',
+            'delete categories',
+            'view fiscal-years',
+            'create fiscal-years',
+            'edit fiscal-years',
+            'delete fiscal-years',
+            'view users',
         ]);
 
         // Assign admin role ke user pertama jika belum punya role

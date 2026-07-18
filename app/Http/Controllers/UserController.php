@@ -19,6 +19,7 @@ class UserController extends Controller
     public function index(): Response
     {
         $auth = auth()->user();
+        $canManage = $auth->can('manage users');
 
         $users = User::with(['roles', 'household'])
             ->when(! $auth->isSuperAdmin(), fn($q) => $q->where('household_id', $auth->household_id))
@@ -35,15 +36,23 @@ class UserController extends Controller
                 'roles'      => $user->roles->pluck('name'),
                 'household'  => $user->household?->name,
                 'created_at' => $user->created_at->format('Y-m-d H:i'),
+                // Cermin aturan update()/destroy() agar tombol yang pasti
+                // ditolak server tidak perlu tampil
+                'editable'   => $canManage || $user->id === $auth->id,
+                'deletable'  => $canManage && $user->id !== $auth->id,
             ]);
 
-        $roles = Role::orderBy('name')
-            ->when(! $auth->isSuperAdmin(), fn($q) => $q->where('name', '!=', 'super-admin'))
-            ->pluck('name');
+        // Pilihan role hanya milik super admin — admin household selalu
+        // membuat anggota ber-role 'user'
+        $roles = $auth->isSuperAdmin()
+            ? Role::orderBy('name')->pluck('name')
+            : collect();
 
         return Inertia::render('users/index', [
             'users' => $users,
             'roles' => $roles,
+            'canManage' => $canManage,
+            'canChooseRole' => $auth->isSuperAdmin(),
         ]);
     }
 
@@ -55,17 +64,17 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', Password::defaults(), 'confirmed'],
-            'role'     => ['required', 'string', 'exists:roles,name'],
+            'role'     => [$auth->isSuperAdmin() ? 'required' : 'nullable', 'string', 'exists:roles,name'],
         ]);
 
-        if ($validated['role'] === 'super-admin' && ! $auth->isSuperAdmin()) {
-            return back()->with('error', 'You cannot assign the super-admin role.');
-        }
+        // Admin household selalu membuat anggota ber-role 'user';
+        // pilihan role hanya milik super admin
+        $role = $auth->isSuperAdmin() ? $validated['role'] : 'user';
 
         // Anggota baru masuk ke household pembuatnya; super admin memakai filter aktif
         $householdId = $auth->isSuperAdmin() ? session('household_filter') : $auth->household_id;
 
-        if (! $householdId && $validated['role'] !== 'super-admin') {
+        if (! $householdId && $role !== 'super-admin') {
             return back()->with('error', 'Select a household first (use the household switcher).');
         }
 
@@ -73,10 +82,10 @@ class UserController extends Controller
             'name'         => $validated['name'],
             'email'        => $validated['email'],
             'password'     => Hash::make($validated['password']),
-            'household_id' => $validated['role'] === 'super-admin' ? null : $householdId,
+            'household_id' => $role === 'super-admin' ? null : $householdId,
         ]);
 
-        $user->assignRole($validated['role']);
+        $user->assignRole($role);
 
         return back()->with('success', "User {$user->name} created successfully.");
     }
@@ -84,6 +93,11 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $auth = auth()->user();
+
+        // Role 'user' hanya boleh mengedit akunnya sendiri
+        if (! $auth->can('manage users') && $user->id !== $auth->id) {
+            abort(403);
+        }
 
         if (! $auth->isSuperAdmin() && $user->household_id !== $auth->household_id) {
             abort(403);
@@ -93,12 +107,8 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['nullable', Password::defaults(), 'confirmed'],
-            'role'     => ['required', 'string', 'exists:roles,name'],
+            'role'     => ['nullable', 'string', 'exists:roles,name'],
         ]);
-
-        if ($validated['role'] === 'super-admin' && ! $auth->isSuperAdmin()) {
-            return back()->with('error', 'You cannot assign the super-admin role.');
-        }
 
         $user->update([
             'name'  => $validated['name'],
@@ -106,16 +116,19 @@ class UserController extends Controller
             ...($validated['password'] ? ['password' => Hash::make($validated['password'])] : []),
         ]);
 
-        // Guard admin terakhir di household yang sama
-        if (
-            $user->hasRole('admin') &&
-            $validated['role'] !== 'admin' &&
-            User::role('admin')->where('household_id', $user->household_id)->count() <= 1
-        ) {
-            return back()->with('error', 'Cannot remove the last admin of this household.');
-        }
+        // Perubahan role hanya milik super admin
+        if ($auth->isSuperAdmin() && ($validated['role'] ?? null)) {
+            // Guard admin terakhir di household yang sama
+            if (
+                $user->hasRole('admin') &&
+                $validated['role'] !== 'admin' &&
+                User::role('admin')->where('household_id', $user->household_id)->count() <= 1
+            ) {
+                return back()->with('error', 'Cannot remove the last admin of this household.');
+            }
 
-        $user->syncRoles([$validated['role']]);
+            $user->syncRoles([$validated['role']]);
+        }
 
         return back()->with('success', "User {$user->name} updated successfully.");
     }

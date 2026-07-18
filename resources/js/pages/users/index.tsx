@@ -25,11 +25,15 @@ interface UserRow {
     roles: string[];
     household: string | null;
     created_at: string;
+    editable: boolean;
+    deletable: boolean;
 }
 
 interface Props {
     users: UserRow[];
     roles: string[];
+    canManage: boolean;
+    canChooseRole: boolean;
 }
 
 const ROLE_BADGE: Record<string, string> = {
@@ -62,7 +66,7 @@ function initials(name: string): string {
         .toUpperCase();
 }
 
-export default function UsersIndex({ users, roles }: Props) {
+export default function UsersIndex({ users, roles, canManage, canChooseRole }: Props) {
     const [createOpen, setCreateOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<UserRow | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
@@ -146,9 +150,11 @@ export default function UsersIndex({ users, roles }: Props) {
                 <PageHeader
                     subtitle="Manage user accounts and their roles."
                     action={
-                        <Button onClick={openCreate}>
-                            <Plus className="mr-1 h-4 w-4" /> New User
-                        </Button>
+                        canManage ? (
+                            <Button onClick={openCreate}>
+                                <Plus className="mr-1 h-4 w-4" /> New User
+                            </Button>
+                        ) : undefined
                     }
                 />
 
@@ -214,17 +220,21 @@ export default function UsersIndex({ users, roles }: Props) {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-1">
-                                                <Button size="icon" variant="ghost" onClick={() => openEdit(user)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="text-rose-500 hover:text-rose-600"
-                                                    onClick={() => setDeleteTarget(user)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {user.editable && (
+                                                    <Button size="icon" variant="ghost" onClick={() => openEdit(user)}>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                )}
+                                                {user.deletable && (
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="text-rose-500 hover:text-rose-600"
+                                                        onClick={() => setDeleteTarget(user)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -281,25 +291,31 @@ export default function UsersIndex({ users, roles }: Props) {
                                 placeholder="Repeat password"
                             />
                         </div>
-                        <div>
-                            <Label>Role</Label>
-                            <Select
-                                value={createForm.data.role}
-                                onValueChange={(v) => createForm.setData('role', v)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem key={role} value={role} className="capitalize">
-                                            {role}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={createForm.errors.role} />
-                        </div>
+                        {canChooseRole ? (
+                            <div>
+                                <Label>Role</Label>
+                                <Select
+                                    value={createForm.data.role}
+                                    onValueChange={(v) => createForm.setData('role', v)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roles.map((role) => (
+                                            <SelectItem key={role} value={role} className="capitalize">
+                                                {role}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={createForm.errors.role} />
+                            </div>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">
+                                Anggota baru otomatis mendapat role <span className="font-semibold">user</span>.
+                            </p>
+                        )}
                         <DialogFooter>
                             <Button type="button" variant="ghost" onClick={() => setCreateOpen(false)}>
                                 Cancel
@@ -358,25 +374,27 @@ export default function UsersIndex({ users, roles }: Props) {
                                 placeholder="Repeat new password"
                             />
                         </div>
-                        <div>
-                            <Label>Role</Label>
-                            <Select
-                                value={editForm.data.role}
-                                onValueChange={(v) => editForm.setData('role', v)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem key={role} value={role} className="capitalize">
-                                            {role}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={editForm.errors.role} />
-                        </div>
+                        {canChooseRole && (
+                            <div>
+                                <Label>Role</Label>
+                                <Select
+                                    value={editForm.data.role}
+                                    onValueChange={(v) => editForm.setData('role', v)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roles.map((role) => (
+                                            <SelectItem key={role} value={role} className="capitalize">
+                                                {role}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <InputError message={editForm.errors.role} />
+                            </div>
+                        )}
                         <DialogFooter>
                             <Button type="button" variant="ghost" onClick={() => setEditTarget(null)}>
                                 Cancel

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ChartColumnBig, LayoutGrid, ListChecks, ShieldCheck, TrendingDown, TrendingUp, Users, Wallet } from 'lucide-react';
+import { BadgeDollarSign, ChartColumnBig, LayoutGrid, ListChecks, ReceiptText, ShieldCheck, TrendingDown, TrendingUp, Users, Wallet } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -53,7 +53,7 @@ export function AppSidebar() {
     ];
 
     const adminNavItems: NavItem[] = [
-        ...(can('manage users') ? [{
+        ...(can('view users') ? [{
             title: 'Users',
             href: '/users',
             icon: Users,
@@ -62,6 +62,16 @@ export function AppSidebar() {
             title: 'Roles',
             href: '/roles',
             icon: ShieldCheck,
+        }] : []),
+        ...(can('manage plans') ? [{
+            title: 'Plans',
+            href: '/plans',
+            icon: BadgeDollarSign,
+        }] : []),
+        ...(can('manage payments') ? [{
+            title: 'Payments',
+            href: '/payment-orders',
+            icon: ReceiptText,
         }] : []),
     ];
 

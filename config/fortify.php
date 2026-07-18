@@ -144,7 +144,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registrasi bawaan dimatikan — diganti alur registrasi berbayar
+        // (lihat App\Http\Controllers\Auth\RegistrationController)
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

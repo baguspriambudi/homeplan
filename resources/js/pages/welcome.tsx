@@ -58,24 +58,33 @@ const features = [
 const steps = [
     {
         number: '1',
-        title: 'Daftar & buat rumah tanggamu',
+        title: 'Daftar & pilih paket',
         description:
-            'Sekali daftar, rumah tanggamu langsung punya ruang sendiri. Undang pasangan atau keluarga sebagai anggota.',
+            'Isi nama, email, dan nama rumah tanggamu, lalu pilih paket langganan yang pas.',
     },
     {
         number: '2',
-        title: 'Buat periode & catat transaksi',
+        title: 'Bayar via QRIS',
         description:
-            'Tentukan saldo awal per periode, lalu catat pengeluaran dan pemasukan harian dengan kategorimu sendiri.',
+            'Scan kode QR dari aplikasi pembayaran apa pun, lalu upload bukti transfermu. Setelah dikonfirmasi, akun dikirim ke emailmu.',
     },
     {
         number: '3',
-        title: 'Pantau & evaluasi',
-        description: 'Lihat sisa anggaran, arus kas, dan tabungan secara real-time di dashboard.',
+        title: 'Langsung mulai mencatat',
+        description:
+            'Kategori bawaan dan periode bulan berjalan sudah disiapkan otomatis. Undang pasangan sebagai anggota dan mulai catat.',
     },
 ];
 
-export default function Welcome({ canRegister = true }: { canRegister?: boolean }) {
+interface PlanItem {
+    id: number;
+    name: string;
+    duration_days: number;
+    price: number;
+    description: string | null;
+}
+
+export default function Welcome({ canRegister = true, plans = [] }: { canRegister?: boolean; plans?: PlanItem[] }) {
     const { auth } = usePage<SharedData>().props;
 
     return (
@@ -108,7 +117,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     </Button>
                                     {canRegister && (
                                         <Button asChild size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">
-                                            <Link href={register()}>Daftar Gratis</Link>
+                                            <Link href={register()}>Daftar</Link>
                                         </Button>
                                     )}
                                 </>
@@ -126,7 +135,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                     <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
                         <div>
                             <Badge className="mb-4 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15 dark:text-emerald-400">
-                                Gratis untuk keluarga Indonesia
+                                Langganan hemat untuk keluarga Indonesia
                             </Badge>
                             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
                                 Uang ke mana saja?{' '}
@@ -152,7 +161,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                     {canRegister && (
                                         <Button asChild size="lg" className="bg-emerald-600 text-white hover:bg-emerald-700">
                                             <Link href={register()}>
-                                                Mulai Sekarang — Gratis <ArrowRight className="ml-2 h-5 w-5" />
+                                                Mulai Sekarang <ArrowRight className="ml-2 h-5 w-5" />
                                             </Link>
                                         </Button>
                                     )}
@@ -162,7 +171,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 </div>
                             )}
                             <p className="mt-4 text-sm text-muted-foreground">
-                                Tanpa kartu kredit · Data milikmu sepenuhnya · Dark mode tersedia
+                                Bayar mudah via QRIS · Data milikmu sepenuhnya · Dark mode tersedia
                             </p>
                         </div>
 
@@ -271,6 +280,54 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                     </div>
                 </section>
 
+                {/* Pricing */}
+                {plans.length > 0 && (
+                    <section className="border-t bg-muted/30">
+                        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+                            <div className="mx-auto max-w-2xl text-center">
+                                <h2 className="text-3xl font-bold tracking-tight">Paket langganan sederhana</h2>
+                                <p className="mt-3 text-muted-foreground">
+                                    Satu harga untuk seluruh rumah tangga — semua fitur terbuka, tambah anggota keluarga
+                                    tanpa biaya ekstra.
+                                </p>
+                            </div>
+                            <div className="mt-12 flex flex-wrap justify-center gap-6">
+                                {plans.map((plan) => (
+                                    <div
+                                        key={plan.id}
+                                        className="flex w-full max-w-sm flex-col rounded-2xl border bg-card p-6 transition-shadow hover:shadow-lg hover:shadow-emerald-500/5 sm:w-80"
+                                    >
+                                        <h3 className="font-semibold">{plan.name}</h3>
+                                        <p className="mt-3 text-3xl font-extrabold">{formatRupiah(plan.price)}</p>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            masa aktif {plan.duration_days} hari
+                                        </p>
+                                        {plan.description && (
+                                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                                                {plan.description}
+                                            </p>
+                                        )}
+                                        {canRegister && !auth.user && (
+                                            <div className="mt-auto pt-6">
+                                                <Button
+                                                    asChild
+                                                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                                                >
+                                                    <Link href={register()}>Pilih {plan.name}</Link>
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="mt-8 text-center text-sm text-muted-foreground">
+                                Pembayaran via QRIS dari aplikasi bank atau e-wallet apa pun. Akun aktif setelah
+                                pembayaran dikonfirmasi.
+                            </p>
+                        </div>
+                    </section>
+                )}
+
                 {/* CTA */}
                 <section className="border-t">
                     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -296,7 +353,7 @@ export default function Welcome({ canRegister = true }: { canRegister?: boolean 
                                 ) : canRegister ? (
                                     <Button asChild size="lg" variant="secondary">
                                         <Link href={register()}>
-                                            Daftar Gratis Sekarang <ArrowRight className="ml-2 h-5 w-5" />
+                                            Daftar Sekarang <ArrowRight className="ml-2 h-5 w-5" />
                                         </Link>
                                     </Button>
                                 ) : (
