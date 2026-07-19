@@ -14,7 +14,7 @@ export function PageHeader({
     action,
 }: {
     title?: string;
-    subtitle?: string;
+    subtitle?: ReactNode;
     action?: ReactNode;
 }) {
     return (
@@ -97,6 +97,45 @@ export function formatDate(date: string): string {
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Tanggal lokal "YYYY-MM-DD" — JANGAN pakai toISOString().slice(0,10)
+ * karena dikonversi ke UTC dan mundur 1 hari untuk WIB.
+ */
+export function toLocalIso(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/** Qty bahan: "0.50" -> "0,5" (format id-ID, tanpa nol berlebih) */
+export function formatQty(qty: string | number): string {
+    return Number(qty).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+}
+
+/** Warna badge bahan — dipilih dari hash nama agar bahan yang sama selalu berwarna sama */
+const INGREDIENT_PALETTE = [
+    'bg-rose-500/15 text-rose-700 dark:text-rose-400',
+    'bg-orange-500/15 text-orange-700 dark:text-orange-400',
+    'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+    'bg-lime-500/15 text-lime-700 dark:text-lime-400',
+    'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+    'bg-teal-500/15 text-teal-700 dark:text-teal-400',
+    'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+    'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400',
+    'bg-violet-500/15 text-violet-700 dark:text-violet-400',
+    'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-400',
+];
+
+export function ingredientColor(name: string): string {
+    let hash = 0;
+    const key = name.trim().toLowerCase();
+    for (let i = 0; i < key.length; i++) {
+        hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+    }
+    return INGREDIENT_PALETTE[hash % INGREDIENT_PALETTE.length];
 }
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];

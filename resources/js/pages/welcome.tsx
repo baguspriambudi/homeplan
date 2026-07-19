@@ -3,8 +3,10 @@ import {
     ArrowRight,
     BarChart3,
     CalendarRange,
+    CookingPot,
     LineChart,
     PiggyBank,
+    Send,
     ShieldCheck,
     Users,
     Wallet,
@@ -42,6 +44,18 @@ const features = [
             'Dana darurat dan tabungan anak terpantau terpisah, sehingga tujuan menabung tidak tercampur pengeluaran.',
     },
     {
+        icon: Send,
+        title: 'Catat via Bot Telegram',
+        description:
+            'Sambungkan bot Telegram milik keluargamu, lalu cukup ketik "keluar 50rb makan siang" dari chat — transaksi langsung tercatat lengkap dengan kategori dan sisa saldo.',
+    },
+    {
+        icon: CookingPot,
+        title: 'Rencana Menu Masakan',
+        description:
+            'Susun master menu beserta bahan dan takarannya, lalu jadwalkan di kalender untuk pagi, siang, dan sore — masak dan belanja jadi lebih terencana.',
+    },
+    {
         icon: ShieldCheck,
         title: 'Aman & Terkontrol',
         description:
@@ -72,7 +86,7 @@ const steps = [
         number: '3',
         title: 'Langsung mulai mencatat',
         description:
-            'Kategori bawaan dan periode bulan berjalan sudah disiapkan otomatis. Undang pasangan sebagai anggota dan mulai catat.',
+            'Kategori bawaan, periode bulan berjalan, dan satuan bahan sudah disiapkan otomatis. Undang pasangan jadi anggota, sambungkan bot Telegram, dan mulai catat.',
     },
 ];
 
@@ -142,8 +156,9 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                                 <span className="text-emerald-600 dark:text-emerald-400">MyExpense</span> tahu jawabannya.
                             </h1>
                             <p className="mt-4 max-w-lg text-lg text-muted-foreground">
-                                Catat pengeluaran, kelola anggaran per periode, dan pantau tabungan dalam satu dashboard
-                                — setiap rumah tangga punya ruang datanya sendiri, aman dan terpisah.
+                                Catat pengeluaran — bahkan langsung dari chat Telegram — kelola anggaran per periode,
+                                pantau tabungan, sampai rencanakan menu masakan keluarga. Setiap rumah tangga punya ruang
+                                datanya sendiri, aman dan terpisah.
                             </p>
                             {auth.user ? (
                                 <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -171,7 +186,7 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                                 </div>
                             )}
                             <p className="mt-4 text-sm text-muted-foreground">
-                                Bayar mudah via QRIS · Data milikmu sepenuhnya · Dark mode tersedia
+                                Bayar mudah via QRIS · Catat dari bot Telegram · Data milikmu sepenuhnya
                             </p>
                         </div>
 
@@ -217,6 +232,27 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                                         <div className="h-full w-[38%] rounded-full bg-emerald-500" />
                                     </div>
                                 </div>
+                                {/* Mock chat bot Telegram */}
+                                <div className="mt-4 rounded-xl border p-4">
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/15">
+                                            <Send className="h-3 w-3 text-sky-600 dark:text-sky-400" />
+                                        </span>
+                                        <p className="text-xs font-semibold">Bot Telegram</p>
+                                        <span className="ml-auto flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> online
+                                        </span>
+                                    </div>
+                                    <div className="mt-3 flex flex-col gap-1.5 text-xs">
+                                        <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-emerald-600 px-3 py-1.5 text-white">
+                                            keluar 50rb makan siang
+                                        </p>
+                                        <p className="max-w-[85%] rounded-2xl rounded-bl-sm bg-muted px-3 py-1.5 text-muted-foreground">
+                                            ✅ Tercatat! Sisa saldo{' '}
+                                            <span className="font-semibold text-foreground">{formatRupiah(7700000)}</span>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div
                                 className="absolute -right-6 -top-6 -z-10 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl"
@@ -242,7 +278,7 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                                 laporan.
                             </p>
                         </div>
-                        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {features.map((feature) => (
                                 <div
                                     key={feature.title}

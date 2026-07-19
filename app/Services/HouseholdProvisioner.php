@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Category;
 use App\Models\FiscalYear;
 use App\Models\Household;
+use App\Models\Uom;
 use App\Models\User;
 
 /**
@@ -13,10 +14,17 @@ use App\Models\User;
  */
 class HouseholdProvisioner
 {
+    /** Satuan bahan standar untuk master UOM awal */
+    public const DEFAULT_UOMS = [
+        'gr', 'kg', 'ml', 'liter', 'pcs', 'butir', 'siung', 'buah',
+        'ikat', 'lembar', 'sdm', 'sdt', 'gelas', 'bungkus', 'potong',
+    ];
+
     public function provision(Household $household, User $owner): void
     {
         $this->copyCategories($household, $owner);
         $this->createInitialFiscalYear($household);
+        $this->createDefaultUoms($household, $owner);
     }
 
     /**
@@ -68,5 +76,14 @@ class HouseholdProvisioner
         ]);
         $fiscalYear->household_id = $household->id;
         $fiscalYear->save();
+    }
+
+    private function createDefaultUoms(Household $household, User $owner): void
+    {
+        foreach (self::DEFAULT_UOMS as $name) {
+            $uom = new Uom(['name' => $name, 'created_by' => $owner->id]);
+            $uom->household_id = $household->id;
+            $uom->save();
+        }
     }
 }

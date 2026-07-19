@@ -22,6 +22,13 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'telegram' => [
+                'linked' => $request->user()->telegram_chat_id !== null,
+                'link_code' => $request->user()->telegram_link_code,
+                // Bot milik household user (dikonfigurasi admin di menu Telegram Bot)
+                'bot_configured' => $request->user()->household?->telegram_bot_token !== null,
+                'bot_username' => $request->user()->household?->telegram_bot_username,
+            ],
         ]);
     }
 

@@ -7,12 +7,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FiscalYearController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\MealPlanController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderPaymentController;
 use App\Http\Controllers\PaymentOrderController;
+use App\Http\Controllers\TelegramConfigController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\UomController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +82,20 @@ Route::middleware(['auth', 'verified', 'subscription.active'])->group(function (
     Route::resource('incomes', IncomeController::class)->except(['create', 'edit', 'show']);
     Route::resource('fiscal-years', FiscalYearController::class)->except(['create', 'edit', 'show']);
     Route::resource('categories', CategoryController::class)->except(['create', 'edit', 'show']);
+
+    // Meal planning — permission dicek per-action di controller
+    Route::resource('uoms', UomController::class)->except(['create', 'edit', 'show']);
+    Route::resource('menus', MenuController::class)->except(['create', 'edit', 'show']);
+    Route::get('meal-plans', [MealPlanController::class, 'index'])->name('meal-plans.index');
+    Route::post('meal-plans', [MealPlanController::class, 'store'])->name('meal-plans.store');
+    Route::delete('meal-plans/{meal_plan_item}', [MealPlanController::class, 'destroy'])->name('meal-plans.destroy');
+
+    // Konfigurasi bot Telegram per household (admin household)
+    Route::middleware('permission:manage telegram')->group(function () {
+        Route::get('/telegram-config', [TelegramConfigController::class, 'index'])->name('telegram-config.index');
+        Route::post('/telegram-config', [TelegramConfigController::class, 'store'])->name('telegram-config.store');
+        Route::delete('/telegram-config', [TelegramConfigController::class, 'destroy'])->name('telegram-config.destroy');
+    });
 
     // Admin: User Management
     Route::middleware('permission:view users')->group(function () {

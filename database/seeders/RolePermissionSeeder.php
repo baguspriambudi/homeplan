@@ -42,10 +42,25 @@ class RolePermissionSeeder extends Seeder
             'edit incomes',
             'delete incomes',
 
+            // Meal Planning
+            'view uoms',
+            'create uoms',
+            'edit uoms',
+            'delete uoms',
+            'view menus',
+            'create menus',
+            'edit menus',
+            'delete menus',
+            'view meal-plans',
+            'create meal-plans',
+            'edit meal-plans',
+            'delete meal-plans',
+
             // Administration
             'view users',
             'manage users',
             'manage roles',
+            'manage telegram',
 
             // Subscription & Payments (khusus super admin)
             'manage plans',
@@ -95,6 +110,18 @@ class RolePermissionSeeder extends Seeder
             'create fiscal-years',
             'edit fiscal-years',
             'delete fiscal-years',
+            'view uoms',
+            'create uoms',
+            'edit uoms',
+            'delete uoms',
+            'view menus',
+            'create menus',
+            'edit menus',
+            'delete menus',
+            'view meal-plans',
+            'create meal-plans',
+            'edit meal-plans',
+            'delete meal-plans',
             'view users',
         ]);
 

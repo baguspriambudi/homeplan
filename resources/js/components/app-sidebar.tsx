@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BadgeDollarSign, ChartColumnBig, LayoutGrid, ListChecks, ReceiptText, ShieldCheck, TrendingDown, TrendingUp, Users, Wallet } from 'lucide-react';
+import { BadgeDollarSign, BotMessageSquare, CalendarRange, ChartColumnBig, CookingPot, LayoutGrid, ListChecks, ReceiptText, Ruler, ShieldCheck, TrendingDown, TrendingUp, Users, Wallet } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -52,11 +52,34 @@ export function AppSidebar() {
         }] : []),
     ];
 
+    const mealNavItems: NavItem[] = [
+        ...(can('view meal-plans') ? [{
+            title: 'Meal Plans',
+            href: '/meal-plans',
+            icon: CalendarRange,
+        }] : []),
+        ...(can('view menus') ? [{
+            title: 'Menus',
+            href: '/menus',
+            icon: CookingPot,
+        }] : []),
+        ...(can('view uoms') ? [{
+            title: 'Units',
+            href: '/uoms',
+            icon: Ruler,
+        }] : []),
+    ];
+
     const adminNavItems: NavItem[] = [
         ...(can('view users') ? [{
             title: 'Users',
             href: '/users',
             icon: Users,
+        }] : []),
+        ...(can('manage telegram') ? [{
+            title: 'Telegram Bot',
+            href: '/telegram-config',
+            icon: BotMessageSquare,
         }] : []),
         ...(can('manage roles') ? [{
             title: 'Roles',
@@ -93,6 +116,9 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {mealNavItems.length > 0 && (
+                    <NavMain items={mealNavItems} label="Meal Planning" />
+                )}
                 {adminNavItems.length > 0 && (
                     <NavMain items={adminNavItems} label="Administration" />
                 )}
