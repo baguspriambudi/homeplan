@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -125,12 +126,9 @@ export default function PlansIndex({ plans }: Props) {
                     </div>
                     <div>
                         <Label>Price (Rp)</Label>
-                        <Input
-                            type="number"
-                            min={1000}
-                            step={500}
-                            value={form.data.price}
-                            onChange={(e) => form.setData('price', e.target.value)}
+                        <MoneyInput
+                            value={String(form.data.price)}
+                            onValueChange={(raw) => form.setData('price', raw)}
                         />
                         <InputError message={form.errors.price} />
                     </div>
