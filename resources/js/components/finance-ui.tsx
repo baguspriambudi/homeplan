@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -97,6 +97,62 @@ export function formatDate(date: string): string {
     const d = new Date(date);
     if (isNaN(d.getTime())) return date;
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Input tanggal yang MENAMPILKAN format hari-bulan-tahun (mis. "12 Jul 2026")
+ * tapi menyimpan nilai "YYYY-MM-DD" untuk backend (tidak berubah).
+ *
+ * Caranya: native <input type="date"> transparan ditumpuk di atas lapisan
+ * tampilan. Kalender tetap native (tanpa library), tapi teksnya kita format
+ * sendiri sehingga selalu hari-bulan-tahun apa pun locale browser-nya.
+ */
+export function DateField({
+    value,
+    onChange,
+    id,
+    min,
+    max,
+    placeholder = 'Pilih tanggal',
+}: {
+    value: string;
+    onChange: (value: string) => void;
+    id?: string;
+    min?: string;
+    max?: string;
+    placeholder?: string;
+}) {
+    return (
+        <div className="relative">
+            {/* Native date input transparan: sumber kalender + nilai YYYY-MM-DD */}
+            <input
+                id={id}
+                type="date"
+                value={value}
+                min={min}
+                max={max}
+                onChange={(e) => onChange(e.target.value)}
+                onClick={(e) => {
+                    // Buka kalender saat area diklik (bukan hanya ikon kecil bawaan)
+                    const el = e.currentTarget as HTMLInputElement & { showPicker?: () => void };
+                    try {
+                        el.showPicker?.();
+                    } catch {
+                        /* showPicker tidak tersedia — biarkan perilaku default */
+                    }
+                }}
+                aria-label={placeholder}
+                className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            />
+            {/* Lapisan tampilan: teks hari-bulan-tahun */}
+            <div className="border-input flex h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] pointer-events-none md:text-sm peer-focus-visible:border-ring peer-focus-visible:ring-ring/50 peer-focus-visible:ring-[3px]">
+                <span className={value ? '' : 'text-muted-foreground'}>
+                    {value ? formatDate(value) : placeholder}
+                </span>
+                <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </div>
+        </div>
+    );
 }
 
 /**

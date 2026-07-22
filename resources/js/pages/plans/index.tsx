@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import InputError from '@/components/input-error';
@@ -136,10 +137,11 @@ export default function PlansIndex({ plans }: Props) {
                 </div>
                 <div>
                     <Label>Description</Label>
-                    <Input
+                    <Textarea
                         value={form.data.description}
                         onChange={(e) => form.setData('description', e.target.value)}
                         placeholder="Optional short description"
+                        rows={3}
                     />
                     <InputError message={form.errors.description} />
                 </div>

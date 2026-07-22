@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import InputError from '@/components/input-error';
-import { EmptyRow, formatDate, PageHeader, TablePagination, usePagination } from '@/components/finance-ui';
+import { DateField, EmptyRow, formatDate, PageHeader, TablePagination, usePagination } from '@/components/finance-ui';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Fiscal Years', href: '/fiscal-years' }];
@@ -254,19 +254,17 @@ export default function FiscalYearsIndex({ fiscalYears }: Props) {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label>Start Date</Label>
-                                <Input
-                                    type="date"
+                                <DateField
                                     value={createForm.data.start_date}
-                                    onChange={(e) => createForm.setData('start_date', e.target.value)}
+                                    onChange={(v) => createForm.setData('start_date', v)}
                                 />
                                 <InputError message={createForm.errors.start_date} />
                             </div>
                             <div>
                                 <Label>End Date</Label>
-                                <Input
-                                    type="date"
+                                <DateField
                                     value={createForm.data.end_date}
-                                    onChange={(e) => createForm.setData('end_date', e.target.value)}
+                                    onChange={(v) => createForm.setData('end_date', v)}
                                 />
                                 <InputError message={createForm.errors.end_date} />
                             </div>
@@ -309,19 +307,17 @@ export default function FiscalYearsIndex({ fiscalYears }: Props) {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label>Start Date</Label>
-                                <Input
-                                    type="date"
+                                <DateField
                                     value={editForm.data.start_date}
-                                    onChange={(e) => editForm.setData('start_date', e.target.value)}
+                                    onChange={(v) => editForm.setData('start_date', v)}
                                 />
                                 <InputError message={editForm.errors.start_date} />
                             </div>
                             <div>
                                 <Label>End Date</Label>
-                                <Input
-                                    type="date"
+                                <DateField
                                     value={editForm.data.end_date}
-                                    onChange={(e) => editForm.setData('end_date', e.target.value)}
+                                    onChange={(v) => editForm.setData('end_date', v)}
                                 />
                                 <InputError message={editForm.errors.end_date} />
                             </div>

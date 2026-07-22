@@ -9,13 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { MoneyInput } from '@/components/ui/money-input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import InputError from '@/components/input-error';
-import { EmptyRow, formatDate, PageHeader, SearchInput, TablePagination, usePagination, UserChip } from '@/components/finance-ui';
+import { DateField, EmptyRow, formatDate, PageHeader, SearchInput, TablePagination, usePagination, UserChip } from '@/components/finance-ui';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Income', href: '/incomes' }];
@@ -278,10 +278,9 @@ export default function IncomesIndex({ incomes, categories, fiscalYears, selecte
                     <form onSubmit={submitCreate} className="flex flex-col gap-4">
                         <div>
                             <Label>Date</Label>
-                            <Input
-                                type="date"
+                            <DateField
                                 value={createForm.data.income_date}
-                                onChange={(e) => createForm.setData('income_date', e.target.value)}
+                                onChange={(v) => createForm.setData('income_date', v)}
                             />
                             <InputError message={createForm.errors.income_date} />
                         </div>
@@ -306,10 +305,11 @@ export default function IncomesIndex({ incomes, categories, fiscalYears, selecte
                         </div>
                         <div>
                             <Label>Description</Label>
-                            <Input
+                            <Textarea
                                 value={createForm.data.description}
                                 onChange={(e) => createForm.setData('description', e.target.value)}
                                 placeholder="Optional"
+                                rows={3}
                             />
                             <InputError message={createForm.errors.description} />
                         </div>
@@ -354,10 +354,9 @@ export default function IncomesIndex({ incomes, categories, fiscalYears, selecte
                     <form onSubmit={submitEdit} className="flex flex-col gap-4">
                         <div>
                             <Label>Date</Label>
-                            <Input
-                                type="date"
+                            <DateField
                                 value={editForm.data.income_date}
-                                onChange={(e) => editForm.setData('income_date', e.target.value)}
+                                onChange={(v) => editForm.setData('income_date', v)}
                             />
                             <InputError message={editForm.errors.income_date} />
                         </div>
@@ -382,9 +381,10 @@ export default function IncomesIndex({ incomes, categories, fiscalYears, selecte
                         </div>
                         <div>
                             <Label>Description</Label>
-                            <Input
+                            <Textarea
                                 value={editForm.data.description}
                                 onChange={(e) => editForm.setData('description', e.target.value)}
+                                rows={3}
                             />
                             <InputError message={editForm.errors.description} />
                         </div>
