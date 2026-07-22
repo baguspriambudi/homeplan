@@ -93,7 +93,7 @@
     },
     "config": {
     "platform": {
-        "php": "8.3.33"
+        "php": "8.4.1"
     },
     "platform-check": false,
     "optimize-autoloader": true,
