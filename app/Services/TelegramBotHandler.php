@@ -297,11 +297,26 @@ class TelegramBotHandler
             return;
         }
 
+        $date = now()->toDateString();
+        $fiscal = $this->fiscalFor($user, $date);
+
+        if (! $fiscal) {
+            $this->telegram->sendMessage($chatId, 'Tidak ada fiscal year yang mencakup hari ini — buat dulu lewat aplikasi.');
+
+            return;
+        }
+
+        if ($fiscal->isClosed()) {
+            $this->telegram->sendMessage($chatId, 'Fiscal year untuk hari ini sudah ditutup.');
+
+            return;
+        }
+
         $income = new Income([
             'category_id' => $state['category_id'],
             'amount' => $state['amount'],
             'description' => $state['description'],
-            'income_date' => now()->toDateString(),
+            'income_date' => $date,
             'adjust_to_cash' => $adjustToCash,
             'created_by' => $user->id,
         ]);

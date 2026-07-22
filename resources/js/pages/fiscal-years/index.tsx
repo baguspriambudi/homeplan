@@ -34,6 +34,22 @@ interface Props {
     fiscalYears: FiscalYear[];
 }
 
+const MONTHS_ID = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+];
+
+function toYmd(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Nama periode mengikuti bulan dari start date, mis. "Agustus 2026" */
+function periodName(startDate: string): string {
+    const d = new Date(startDate.slice(0, 10) + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
+    return `${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 export default function FiscalYearsIndex({ fiscalYears }: Props) {
     const { can } = usePermission();
     const [createOpen, setCreateOpen] = useState(false);
@@ -58,7 +74,25 @@ export default function FiscalYearsIndex({ fiscalYears }: Props) {
     });
 
     function openCreate() {
-        createForm.reset();
+        // Periode berikutnya = bulan setelah fiscal terakhir (fallback: bulan ini),
+        // default tanggal 6 s/d tanggal 5 bulan berikutnya. Nama otomatis dari start date.
+        const latest = fiscalYears.reduce<FiscalYear | null>(
+            (max, fy) => (!max || fy.start_date > max.start_date ? fy : max),
+            null,
+        );
+        const base = latest
+            ? new Date(latest.start_date.slice(0, 10) + 'T00:00:00')
+            : new Date();
+        const start = new Date(base.getFullYear(), base.getMonth() + 1, 6);
+        const end = new Date(start.getFullYear(), start.getMonth() + 1, 5);
+
+        createForm.setData({
+            name: periodName(toYmd(start)),
+            start_date: toYmd(start),
+            end_date: toYmd(end),
+            opening_balance: '',
+        });
+        createForm.clearErrors();
         setCreateOpen(true);
     }
 
@@ -246,9 +280,13 @@ export default function FiscalYearsIndex({ fiscalYears }: Props) {
                             <Label>Name</Label>
                             <Input
                                 value={createForm.data.name}
-                                onChange={(e) => createForm.setData('name', e.target.value)}
-                                placeholder="e.g. 2026 Q1"
+                                readOnly
+                                tabIndex={-1}
+                                className="pointer-events-none bg-muted/50"
                             />
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Nama otomatis mengikuti bulan dari start date.
+                            </p>
                             <InputError message={createForm.errors.name} />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -256,7 +294,13 @@ export default function FiscalYearsIndex({ fiscalYears }: Props) {
                                 <Label>Start Date</Label>
                                 <DateField
                                     value={createForm.data.start_date}
-                                    onChange={(v) => createForm.setData('start_date', v)}
+                                    onChange={(v) =>
+                                        createForm.setData({
+                                            ...createForm.data,
+                                            start_date: v,
+                                            name: periodName(v),
+                                        })
+                                    }
                                 />
                                 <InputError message={createForm.errors.start_date} />
                             </div>

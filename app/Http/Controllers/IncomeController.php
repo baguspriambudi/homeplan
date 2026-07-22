@@ -7,6 +7,7 @@ use App\Models\FiscalYear;
 use App\Models\Income;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,6 +53,8 @@ class IncomeController extends Controller
             'adjust_to_cash' => 'boolean',
         ]);
 
+        $this->validateFiscalYear($validated['income_date']);
+
         $validated['created_by'] = auth()->id();
         $validated['adjust_to_cash'] = $validated['adjust_to_cash'] ?? false;
         Income::create($validated);
@@ -71,6 +74,8 @@ class IncomeController extends Controller
             'adjust_to_cash' => 'boolean',
         ]);
 
+        $this->validateFiscalYear($validated['income_date']);
+
         $validated['adjust_to_cash'] = $validated['adjust_to_cash'] ?? false;
         $income->update($validated);
 
@@ -84,5 +89,28 @@ class IncomeController extends Controller
         $income->delete();
 
         return back()->with('success', 'Income deleted successfully.');
+    }
+
+    /**
+     * Tanggal transaksi harus jatuh di dalam salah satu periode fiscal year
+     * yang masih open — sama seperti aturan pada expenses.
+     */
+    private function validateFiscalYear(string $date): void
+    {
+        $fiscal = FiscalYear::where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->first();
+
+        if (! $fiscal) {
+            throw ValidationException::withMessages([
+                'income_date' => 'This date does not fall within any fiscal year period.',
+            ]);
+        }
+
+        if ($fiscal->isClosed()) {
+            throw ValidationException::withMessages([
+                'income_date' => 'The fiscal year for this date is already closed.',
+            ]);
+        }
     }
 }
