@@ -12,6 +12,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import { dashboard, login, register } from '@/routes';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -109,9 +110,7 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                 <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur">
                     <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
                         <div className="flex items-center gap-2">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15">
-                                <Wallet className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
-                            </span>
+                            <AppLogoIcon className="h-8 w-8" />
                             <span className="text-lg font-bold tracking-tight">
                                 My<span className="text-emerald-600 dark:text-emerald-400">Expense</span>
                             </span>
@@ -406,7 +405,7 @@ export default function Welcome({ canRegister = true, plans = [] }: { canRegiste
                 <footer className="border-t">
                     <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
                         <div className="flex items-center gap-2">
-                            <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            <AppLogoIcon className="h-5 w-5" />
                             <span className="font-semibold text-foreground">MyExpense</span>
                         </div>
                         <p>© {new Date().getFullYear()} MyExpense. Kelola uangmu, raih tujuanmu.</p>

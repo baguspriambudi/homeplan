@@ -95,6 +95,8 @@ Route::middleware(['auth', 'verified', 'subscription.active'])->group(function (
         Route::get('/telegram-config', [TelegramConfigController::class, 'index'])->name('telegram-config.index');
         Route::post('/telegram-config', [TelegramConfigController::class, 'store'])->name('telegram-config.store');
         Route::delete('/telegram-config', [TelegramConfigController::class, 'destroy'])->name('telegram-config.destroy');
+        Route::post('/telegram-config/poller/start', [TelegramConfigController::class, 'startPoller'])->name('telegram-config.poller.start');
+        Route::post('/telegram-config/poller/stop', [TelegramConfigController::class, 'stopPoller'])->name('telegram-config.poller.stop');
     });
 
     // Admin: User Management

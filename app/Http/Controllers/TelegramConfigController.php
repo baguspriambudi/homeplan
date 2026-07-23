@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\TelegramPollCommand;
 use App\Models\Household;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
  * Konfigurasi bot Telegram per household — tiap household memakai bot
@@ -27,7 +30,55 @@ class TelegramConfigController extends Controller
             'linkedMembers' => User::where('household_id', $household->id)
                 ->whereNotNull('telegram_chat_id')
                 ->count(),
+            'pollerRunning' => Cache::has(TelegramPollCommand::HEARTBEAT_KEY),
         ]);
+    }
+
+    /**
+     * Jalankan `telegram:poll` sebagai proses background — satu poller
+     * melayani SEMUA household, jadi cukup satu yang hidup.
+     */
+    public function startPoller(): RedirectResponse
+    {
+        $this->household();
+
+        if (Cache::has(TelegramPollCommand::HEARTBEAT_KEY)) {
+            return back()->with('success', 'Poller sudah berjalan.');
+        }
+
+        if (! Household::whereNotNull('telegram_bot_token')->exists()) {
+            throw ValidationException::withMessages([
+                'token' => 'Belum ada bot yang dikonfigurasi — simpan token dulu.',
+            ]);
+        }
+
+        $php = (new PhpExecutableFinder)->find(false) ?: 'php';
+        $artisan = base_path('artisan');
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            // `start "" /B` melepas proses dari request; cmd /c dalam kutip agar
+            // redirect output milik proses anak, bukan pipe popen yang segera ditutup
+            $inner = sprintf('"%s" "%s" telegram:poll >NUL 2>&1', $php, $artisan);
+            pclose(popen('start "" /B cmd /c "' . $inner . '"', 'r'));
+        } else {
+            exec(sprintf(
+                'nohup %s %s telegram:poll > /dev/null 2>&1 &',
+                escapeshellarg($php),
+                escapeshellarg($artisan),
+            ));
+        }
+
+        return back()->with('success', 'Poller dijalankan.');
+    }
+
+    /** Kirim sinyal stop — poller berhenti rapi di putaran berikutnya. */
+    public function stopPoller(): RedirectResponse
+    {
+        $this->household();
+
+        Cache::put(TelegramPollCommand::STOP_KEY, true, 60);
+
+        return back()->with('success', 'Sinyal stop dikirim — poller berhenti dalam beberapa detik.');
     }
 
     public function store(Request $request): RedirectResponse
