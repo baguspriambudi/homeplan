@@ -30,7 +30,9 @@ class IncomeController extends Controller
             ->orderBy('income_date', 'desc')
             ->get();
 
-        $categories = Category::orderBy('name')->get(['id', 'name', 'type']);
+        $categories = Category::where('type', 'income')
+            ->orderBy('name')
+            ->get(['id', 'name', 'type']);
 
         return Inertia::render('incomes/index', [
             'incomes'          => $incomes,
