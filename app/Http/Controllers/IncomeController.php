@@ -30,7 +30,7 @@ class IncomeController extends Controller
             ->orderBy('income_date', 'desc')
             ->get();
 
-        $categories = Category::where('type', 'income')
+        $categories = Category::whereIn('type', ['income', 'saving'])
             ->orderBy('name')
             ->get(['id', 'name', 'type']);
 
