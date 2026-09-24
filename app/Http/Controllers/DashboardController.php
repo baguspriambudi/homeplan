@@ -182,7 +182,7 @@ class DashboardController extends Controller
             'id'          => 'total',
             'name'        => 'TOTAL',
             'type'        => 'total',
-            'debit'       => $totalIncome,
+            'debit'       => $initialOpening + $totalIncome,
             'kredit'      => $totalExpense,
             'balance'     => $initialOpening + $totalIncome - $totalExpense,
             'description' => null,
