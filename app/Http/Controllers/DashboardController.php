@@ -82,32 +82,32 @@ class DashboardController extends Controller
 
         // Income yang "Adjust to Cash" langsung menambah opening_balance fiscal year
         // (lihat Income::adjustFiscalBalance). Supaya kelihatan transparan, opening
-        // balance dipecah lagi jadi nilai awal + baris tersendiri per kategori income-nya.
+        // balance dipecah lagi jadi nilai awal + baris tersendiri per income (tidak
+        // dijumlahkan per kategori — tiap entri income dapat baris sendiri).
         $adjustIncomes = Income::with('category')
             ->where('adjust_to_cash', true)
             ->whereBetween('income_date', [$start, $end])
-            ->get()
-            ->groupBy('category_id');
+            ->orderBy('income_date')
+            ->get();
 
         $adjustTotal = 0;
         $adjustRows = [];
 
-        foreach ($adjustIncomes as $categoryId => $incomes) {
-            $total = (float) $incomes->sum('amount');
+        foreach ($adjustIncomes as $income) {
+            $total = (float) $income->amount;
             if ($total == 0) continue;
 
             $adjustTotal += $total;
-            $category = $incomes->first()->category;
-            $descriptions = $incomes->pluck('description')->filter()->unique()->values();
+            $category = $income->category;
 
             $adjustRows[] = [
-                'id'          => 'adjust_income_' . $categoryId,
+                'id'          => 'adjust_income_' . $income->id,
                 'name'        => $category ? ucwords(strtolower($category->name)) : 'Additional Income',
                 'type'        => 'income',
                 'debit'       => $total,
                 'kredit'      => null,
                 'balance'     => null,
-                'description' => $descriptions->isNotEmpty() ? $descriptions->implode(' | ') : null,
+                'description' => $income->description,
             ];
         }
 

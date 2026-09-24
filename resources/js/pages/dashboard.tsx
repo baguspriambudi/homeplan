@@ -468,9 +468,7 @@ export default function Dashboard({ fiscalYears, selectedFiscalId, stats, saving
                                                 {row.description ? (
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <span className="cursor-help underline decoration-dotted underline-offset-4">
-                                                                {row.name}
-                                                            </span>
+                                                            <span className="cursor-help">{row.name}</span>
                                                         </TooltipTrigger>
                                                         <TooltipContent>{row.description}</TooltipContent>
                                                     </Tooltip>
