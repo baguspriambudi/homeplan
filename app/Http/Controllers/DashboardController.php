@@ -80,17 +80,57 @@ class DashboardController extends Controller
         $end     = $fiscal->end_date;
         $opening = (float) $fiscal->opening_balance;
 
+        // Income yang "Adjust to Cash" langsung menambah opening_balance fiscal year
+        // (lihat Income::adjustFiscalBalance). Supaya kelihatan transparan, opening
+        // balance dipecah lagi jadi nilai awal + baris tersendiri per kategori income-nya.
+        $adjustIncomes = Income::with('category')
+            ->where('adjust_to_cash', true)
+            ->whereBetween('income_date', [$start, $end])
+            ->get()
+            ->groupBy('category_id');
+
+        $adjustTotal = 0;
+        $adjustRows = [];
+
+        foreach ($adjustIncomes as $categoryId => $incomes) {
+            $total = (float) $incomes->sum('amount');
+            if ($total == 0) continue;
+
+            $adjustTotal += $total;
+            $category = $incomes->first()->category;
+            $descriptions = $incomes->pluck('description')->filter()->unique()->values();
+
+            $adjustRows[] = [
+                'id'          => 'adjust_income_' . $categoryId,
+                'name'        => $category ? ucwords(strtolower($category->name)) : 'Additional Income',
+                'type'        => 'income',
+                'debit'       => $total,
+                'kredit'      => null,
+                'balance'     => null,
+                'description' => $descriptions->isNotEmpty() ? $descriptions->implode(' | ') : null,
+            ];
+        }
+
+        $initialOpening = $opening - $adjustTotal;
+
         $rows = [];
-        $runningBalance = $opening;
+        $runningBalance = $initialOpening;
 
         $rows[] = [
-            'id'      => 'opening',
-            'name'    => 'Opening Balance',
-            'type'    => 'opening',
-            'debit'   => $opening,
-            'kredit'  => null,
-            'balance' => $runningBalance,
+            'id'          => 'opening',
+            'name'        => 'Opening Balance',
+            'type'        => 'opening',
+            'debit'       => $initialOpening,
+            'kredit'      => null,
+            'balance'     => $runningBalance,
+            'description' => null,
         ];
+
+        foreach ($adjustRows as $row) {
+            $runningBalance += $row['debit'];
+            $row['balance'] = $runningBalance;
+            $rows[] = $row;
+        }
 
         $categoryOrder = ['income', 'saving', 'spending', 'bills', 'instalment'];
         $categories = Category::whereIn('type', $categoryOrder)
@@ -103,7 +143,7 @@ class DashboardController extends Controller
             ->selectRaw('category_id, SUM(amount) as total')
             ->pluck('total', 'category_id');
 
-        $totalIncome  = 0;
+        $totalIncome  = $adjustTotal;
         $totalExpense = 0;
 
         foreach ($categories as $cat) {
@@ -115,34 +155,37 @@ class DashboardController extends Controller
                 $totalIncome += $total;
                 $runningBalance += $total;
                 $rows[] = [
-                    'id'      => 'cat_' . $cat->id,
-                    'name'    => ucwords(strtolower($cat->name)),
-                    'type'    => $cat->type,
-                    'debit'   => $total,
-                    'kredit'  => null,
-                    'balance' => $runningBalance,
+                    'id'          => 'cat_' . $cat->id,
+                    'name'        => ucwords(strtolower($cat->name)),
+                    'type'        => $cat->type,
+                    'debit'       => $total,
+                    'kredit'      => null,
+                    'balance'     => $runningBalance,
+                    'description' => null,
                 ];
             } else {
                 $totalExpense += $total;
                 $runningBalance -= $total;
                 $rows[] = [
-                    'id'      => 'cat_' . $cat->id,
-                    'name'    => ucwords(strtolower($cat->name)),
-                    'type'    => $cat->type,
-                    'debit'   => null,
-                    'kredit'  => $total,
-                    'balance' => $runningBalance,
+                    'id'          => 'cat_' . $cat->id,
+                    'name'        => ucwords(strtolower($cat->name)),
+                    'type'        => $cat->type,
+                    'debit'       => null,
+                    'kredit'      => $total,
+                    'balance'     => $runningBalance,
+                    'description' => null,
                 ];
             }
         }
 
         $rows[] = [
-            'id'      => 'total',
-            'name'    => 'TOTAL',
-            'type'    => 'total',
-            'debit'   => $totalIncome,
-            'kredit'  => $totalExpense,
-            'balance' => $opening + $totalIncome - $totalExpense,
+            'id'          => 'total',
+            'name'        => 'TOTAL',
+            'type'        => 'total',
+            'debit'       => $totalIncome,
+            'kredit'      => $totalExpense,
+            'balance'     => $initialOpening + $totalIncome - $totalExpense,
+            'description' => null,
         ];
 
         return $rows;

@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PageHeader } from '@/components/finance-ui';
 import type { BreadcrumbItem } from '@/types';
 
@@ -51,6 +52,7 @@ interface CashflowRow {
     debit: number | null;
     kredit: number | null;
     balance: number;
+    description: string | null;
 }
 
 interface Period {
@@ -463,9 +465,20 @@ export default function Dashboard({ fiscalYears, selectedFiscalId, stats, saving
                                                         {row.type}
                                                     </span>
                                                 )}
-                                                <span className={['opening', 'total'].includes(row.type) ? 'font-bold' : ''}>
-                                                    {row.name}
-                                                </span>
+                                                {row.description ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="cursor-help underline decoration-dotted underline-offset-4">
+                                                                {row.name}
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>{row.description}</TooltipContent>
+                                                    </Tooltip>
+                                                ) : (
+                                                    <span className={['opening', 'total'].includes(row.type) ? 'font-bold' : ''}>
+                                                        {row.name}
+                                                    </span>
+                                                )}
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-right text-emerald-600 dark:text-emerald-400">
